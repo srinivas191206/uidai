@@ -209,12 +209,15 @@ def main():
     c3 = df['age_5_17'] if 'age_5_17' in df.columns else 0
     
     # Create unified column
-    df['unified_age_5_17'] = df.get('bio_age_5_17', 0).fillna(0) + df.get('demo_age_5_17', 0).fillna(0) + df.get('age_5_17', 0).fillna(0)
+    def get_col_safe(col_name):
+        return df[col_name].fillna(0) if col_name in df.columns else 0
+
+    df['unified_age_5_17'] = get_col_safe('bio_age_5_17') + get_col_safe('demo_age_5_17') + get_col_safe('age_5_17')
     
     # 2. 17+ Age Group
     # Candidates: bio_age_17_, demo_age_17_, age_18_greater
     # Note: Enrolment has age_18_greater which is close enough to 17+
-    df['unified_age_17_plus'] = df.get('bio_age_17_', 0).fillna(0) + df.get('demo_age_17_', 0).fillna(0) + df.get('age_18_greater', 0).fillna(0)
+    df['unified_age_17_plus'] = get_col_safe('bio_age_17_') + get_col_safe('demo_age_17_') + get_col_safe('age_18_greater')
     
     # Use these unified columns for metrics
     age_5_17_col = 'unified_age_5_17'
