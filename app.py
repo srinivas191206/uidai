@@ -110,6 +110,13 @@ def load_data():
             for file in os.listdir(folder_path):
                 if file.endswith('.csv'):
                     file_path = os.path.join(folder_path, file)
+                    # Debug logging
+                    try:
+                        size = os.path.getsize(file_path)
+                        print(f"DEBUG: Found file {file_path} with size {size} bytes")
+                    except Exception as e:
+                        print(f"DEBUG: Could not check size of {file_path}: {e}")
+                        
                     data_files.append(file_path)
     
     # Load and combine all data
