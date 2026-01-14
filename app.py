@@ -199,17 +199,29 @@ def main():
     # Calculate metrics
     total_records = len(df)
     
-    # Age group columns - Ensure they exist to prevent KeyErrors
-    age_5_17_col = 'bio_age_5_17'
-    age_17_plus_col = 'bio_age_17_'
+    # Normalize and Combine Columns from different datasets
+    # We want to aggregate metrics from Biometric, Demographic, and Enrolment data
     
-    if age_5_17_col not in df.columns:
-        df[age_5_17_col] = 0
-    if age_17_plus_col not in df.columns:
-        df[age_17_plus_col] = 0
+    # 1. 5-17 Age Group
+    # Candidates: bio_age_5_17, demo_age_5_17, age_5_17
+    c1 = df['bio_age_5_17'] if 'bio_age_5_17' in df.columns else 0
+    c2 = df['demo_age_5_17'] if 'demo_age_5_17' in df.columns else 0
+    c3 = df['age_5_17'] if 'age_5_17' in df.columns else 0
     
-    total_age_5_17 = df[age_5_17_col].sum() if age_5_17_col else 0
-    total_age_17_plus = df[age_17_plus_col].sum() if age_17_plus_col else 0
+    # Create unified column
+    df['unified_age_5_17'] = df.get('bio_age_5_17', 0).fillna(0) + df.get('demo_age_5_17', 0).fillna(0) + df.get('age_5_17', 0).fillna(0)
+    
+    # 2. 17+ Age Group
+    # Candidates: bio_age_17_, demo_age_17_, age_18_greater
+    # Note: Enrolment has age_18_greater which is close enough to 17+
+    df['unified_age_17_plus'] = df.get('bio_age_17_', 0).fillna(0) + df.get('demo_age_17_', 0).fillna(0) + df.get('age_18_greater', 0).fillna(0)
+    
+    # Use these unified columns for metrics
+    age_5_17_col = 'unified_age_5_17'
+    age_17_plus_col = 'unified_age_17_plus'
+    
+    total_age_5_17 = df[age_5_17_col].sum()
+    total_age_17_plus = df[age_17_plus_col].sum()
     total_authentications = total_age_5_17 + total_age_17_plus
     
     # Display key metrics
