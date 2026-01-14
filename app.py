@@ -100,47 +100,44 @@ def load_data():
     """Load all CSV data files"""
     data_files = []
     
-    # Check for data files in the directory structure
+    # 1. OPTION A: Load from Local Files (Preferred for development)
     base_path = os.path.dirname(os.path.abspath(__file__))
-    
-    # Look for CSV files in data directories
     for folder in ['data1.csv', 'data2.csv', 'data3.csv']:
         folder_path = os.path.join(base_path, folder)
         if os.path.exists(folder_path):
             for file in os.listdir(folder_path):
                 if file.endswith('.csv'):
                     file_path = os.path.join(folder_path, file)
-                    
-                    # Check size before loading
+                    # Check size
                     try:
-                        size = os.path.getsize(file_path)
-                        if size == 0:
-                            st.warning(f"Skipping empty file: {file} (0 bytes)")
-                            continue
-                            
-                        # Debug logging
-                        print(f"DEBUG: Found file {file_path} with size {size} bytes")
-                        data_files.append(file_path)
-                    except Exception as e:
-                        print(f"DEBUG: Error checking {file_path}: {e}")
+                        if os.path.getsize(file_path) > 100: # Filter out empty/pointer files
+                             data_files.append(file_path)
+                    except:
+                        pass
+
+    # 2. OPTION B: Load from External URLs (Fallback for deployment)
+    # If you deploy data to an external site (like GitHub Raw, S3, Google Drive direct link), add them here.
+    EXTERNAL_DATA_URLS = [
+        # "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/data1.csv/api_data_aadhar_biometric_0_500000.csv",
+        # "https://example.com/data2.csv",
+    ]
     
-    # Load and combine all data
-    if data_files:
+    # Combine local files and external URLs
+    all_sources = data_files + EXTERNAL_DATA_URLS
+    
+    if all_sources:
         dfs = []
-        for file in data_files:
+        for source in all_sources:
             try:
-                # Read CSV with robust error handling
-                df = pd.read_csv(file, on_bad_lines='skip')
+                # pandas read_csv handles both local paths and URLs
+                df = pd.read_csv(source, on_bad_lines='skip')
                 if not df.empty:
                     dfs.append(df)
-            except pd.errors.EmptyDataError:
-                st.warning(f"File {os.path.basename(file)} is empty or unreadable.")
             except Exception as e:
-                st.warning(f"Could not load {os.path.basename(file)}: {e}")
+                st.warning(f"Could not load {source}: {e}")
         
         if dfs:
             combined_df = pd.concat(dfs, ignore_index=True)
-            # Convert date column to datetime
             if 'date' in combined_df.columns:
                 combined_df['date'] = pd.to_datetime(combined_df['date'], format='%d-%m-%Y', errors='coerce')
             return combined_df
