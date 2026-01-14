@@ -102,11 +102,10 @@ def load_data():
     
     # Check for data files in the directory structure
     base_path = os.path.dirname(os.path.abspath(__file__))
-    parent_path = os.path.dirname(base_path)
     
     # Look for CSV files in data directories
     for folder in ['data1.csv', 'data2.csv', 'data3.csv']:
-        folder_path = os.path.join(parent_path, folder)
+        folder_path = os.path.join(base_path, folder)
         if os.path.exists(folder_path):
             for file in os.listdir(folder_path):
                 if file.endswith('.csv'):
