@@ -199,9 +199,14 @@ def main():
     # Calculate metrics
     total_records = len(df)
     
-    # Age group columns
-    age_5_17_col = 'bio_age_5_17' if 'bio_age_5_17' in df.columns else None
-    age_17_plus_col = 'bio_age_17_' if 'bio_age_17_' in df.columns else None
+    # Age group columns - Ensure they exist to prevent KeyErrors
+    age_5_17_col = 'bio_age_5_17'
+    age_17_plus_col = 'bio_age_17_'
+    
+    if age_5_17_col not in df.columns:
+        df[age_5_17_col] = 0
+    if age_17_plus_col not in df.columns:
+        df[age_17_plus_col] = 0
     
     total_age_5_17 = df[age_5_17_col].sum() if age_5_17_col else 0
     total_age_17_plus = df[age_17_plus_col].sum() if age_17_plus_col else 0
