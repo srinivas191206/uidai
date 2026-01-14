@@ -110,24 +110,33 @@ def load_data():
             for file in os.listdir(folder_path):
                 if file.endswith('.csv'):
                     file_path = os.path.join(folder_path, file)
-                    # Debug logging
+                    
+                    # Check size before loading
                     try:
                         size = os.path.getsize(file_path)
+                        if size == 0:
+                            st.warning(f"Skipping empty file: {file} (0 bytes)")
+                            continue
+                            
+                        # Debug logging
                         print(f"DEBUG: Found file {file_path} with size {size} bytes")
+                        data_files.append(file_path)
                     except Exception as e:
-                        print(f"DEBUG: Could not check size of {file_path}: {e}")
-                        
-                    data_files.append(file_path)
+                        print(f"DEBUG: Error checking {file_path}: {e}")
     
     # Load and combine all data
     if data_files:
         dfs = []
         for file in data_files:
             try:
-                df = pd.read_csv(file)
-                dfs.append(df)
+                # Read CSV with robust error handling
+                df = pd.read_csv(file, on_bad_lines='skip')
+                if not df.empty:
+                    dfs.append(df)
+            except pd.errors.EmptyDataError:
+                st.warning(f"File {os.path.basename(file)} is empty or unreadable.")
             except Exception as e:
-                st.warning(f"Could not load {file}: {e}")
+                st.warning(f"Could not load {os.path.basename(file)}: {e}")
         
         if dfs:
             combined_df = pd.concat(dfs, ignore_index=True)
